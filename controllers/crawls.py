@@ -7,7 +7,7 @@ from app import db
 
 api = Blueprint('crawls', __name__)
 
-crawls_schema = CrawlSchema(many=True) #the exclude here only excludes on the index route, as we would probably not want to see all the victims there. Better to do this on the back end rather than the front end, as it means we dont have to send surplus data to the front end, which costs money.
+crawls_schema = CrawlSchema(many=True)
 crawl_schema = CrawlSchema()
 
 stops_schema = StopSchema(many=True)
@@ -20,13 +20,11 @@ comments_schema = CommentSchema(many=True)
 comment_schema = CommentSchema()
 
 @api.route('/crawls', methods=['GET'])
-# @secure_route
 def index():
     crawls = Crawl.query.all()
     return crawls_schema.jsonify(crawls)
 
 @api.route('/crawls/<int:crawl_id>', methods=['GET'])
-# @secure_route
 def show(crawl_id):
     crawl = Crawl.query.get(crawl_id)
     return crawl_schema.jsonify(crawl)
@@ -130,25 +128,3 @@ def delete_stop(crawl_id, stop_id):
     db.session.delete(stop)
     db.session.commit()
     return '', 204
-
-
-
-########################## WEATHER #############################################
-
-from darksky import forecast
-from datetime import date, timedelta
-
-LONDON = 51.509865, -0.118092
-
-@api.route('/crawls/1/weather', methods=['GET'])
-def weather():
-    weekday = date.today()
-    with forecast('7d2183fa19a468be72c3c07bbff11b19', *LONDON) as london:
-        for day in london.daily:
-            day = dict(day=date.strftime(weekday, '%a'),
-                        sum=day.summary,
-                        tempMin=day.temperatureMin,
-                        tempMax=day.temperatureMax
-                        )
-            return london.hourly.summary
-            # return ('{day}: {sum} Temp range: {tempMin} - {tempMax}'.format(**day))
